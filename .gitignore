@@ -1,0 +1,30 @@
+# Variables d'environnement - NE JAMAIS COMMITER
+.env
+.env.local
+.env.*.local
+
+# Dépendances
+node_modules/
+__pycache__/
+
+# Build
+dist/
+build/
+.nuxt/
+.output/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Uploads temporaires
+backend/uploads/tmp/

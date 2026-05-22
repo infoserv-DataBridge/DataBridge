@@ -1,31 +1,66 @@
 # DataBridge
 
-## Description
-DataBridge est une application permettant de connecter, centraliser et synchroniser les données issues de différents outils (ERP, CRM, fichiers Excel, etc.) afin de réduire la fragmentation du système d'information.
+Plateforme web permettant d'importer des fichiers (Excel, CSV) et de transformer automatiquement les données en base de données structurée, sécurisée et accessible.
 
-## Objectifs
-- Centraliser les données (clients, produits, commandes)
-- Éviter les ressaisies manuelles
-- Assurer la cohérence et la fiabilité des données
-- Faciliter les échanges entre anciens et nouveaux outils
-- Automatiser certains processus
+## Problème résolu
 
-## Fonctionnalités principales
-- Import de données (Excel, bases existantes)
-- Synchronisation entre différents systèmes
-- API pour connecter des outils externes
-- Visualisation et export des données
-- Gestion des utilisateurs et des accès
+De nombreux salariés stockent leurs données dans des classeurs Excel isolés. DataBridge centralise ces données dans une base de données commune, accessible via une interface web simple — sans connaissances techniques requises.
 
-## Architecture
-- Backend : Node.js / API REST
-- Base de données : PostgreSQL
-- Frontend : #
-- Intégration : API / ETL
+## Fonctionnalités
 
-## Installation
+- Import de fichiers Excel / CSV via interface web
+- Transformation automatique des données en base de données PostgreSQL
+- Authentification sécurisée avec gestion des rôles
+- Consultation et export des données importées
+- Interface pensée pour des utilisateurs non-techniciens
+
+## Stack technique
+
+| Composant           | Technologie             |
+|---------------------|-------------------------|
+| Frontend            | Vue.js                  |
+| Backend / API       | Node.js (Express)       |
+| Traitement fichiers | Parser Excel/CSV        |
+| Base de données     | PostgreSQL              |
+| Stockage fichiers   | MinIO (S3-compatible)   |
+| Authentification    | JWT                     |
+| Conteneurs          | Docker + Docker Compose |
+| Infra               | Proxmox                 |
+
+## Structure du projet
+
+```
+DataBridge/
+├── frontend/        # Interface web Vue.js
+├── backend/
+│   └── parsers/     # Traitement Excel/CSV → PostgreSQL
+├── infra/
+│   └── docker/      # docker-compose.yml et Dockerfiles
+├── docs/
+│   ├── architecture.md
+│   ├── setup.md
+│   └── journal.md
+├── .env.example
+└── CLAUDE.md
+```
+
+## Équipe
+
+- Etendard Tommy
+- Paugy Yannis
+
+## Lancer le projet
+
 ```bash
 git clone https://github.com/infoserv-DataBridge/DataBridge.git
-cd databridge
-npm install
-npm run dev
+cd DataBridge
+cp .env.example .env
+# Remplir les variables dans .env
+docker compose up -d
+```
+
+## Conventions Git
+
+- Branches : `main` · `dev` · `feat/nom-feature`
+- Commits : `feat:` `fix:` `docs:` `chore:`
+- Toujours passer par Pull Request pour merger dans `main`
