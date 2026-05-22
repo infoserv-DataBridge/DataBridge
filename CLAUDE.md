@@ -74,9 +74,32 @@ DataBridge/
 
 ## Instructions pour Claude Code
 
-- Avancer étape par étape, valider chaque étape avant de passer à la suivante
-- Toujours documenter les changements dans `docs/journal.md`
-- Privilégier des solutions simples et bien commentées (équipe débutante)
-- Expliquer le pourquoi des choix techniques, pas seulement le comment
-- Mettre à jour ce fichier CLAUDE.md à chaque évolution majeure du projet
+### Langue et pédagogie
+- Toujours répondre en français, vocabulaire simple adapté à des débutants
+- Expliquer le POURQUOI de chaque choix technique avant d'exécuter
+- Équipe de 2 développeurs débutants — privilégier la simplicité et la clarté
+
+### Stack
+- Les choix techniques sont arrêtés : Vue.js · Node.js/Express · JWT · Nginx · PostgreSQL · MinIO
+- Ne pas proposer d'alternatives sauf si demandé explicitement
+
+### Git
+- Travailler sur `main` uniquement (pas de branche dev pour l'instant)
+- Commits au format conventionnel : `feat:` `fix:` `docs:` `chore:`
+- Toujours passer par Pull Request pour merger dans `main`
+
+### Progression
+- Avancer étape par étape — ne jamais commencer l'étape N+1 sans confirmation explicite
 - Toujours demander confirmation avant toute action irréversible
+
+### Documentation & suivi obligatoire
+- Après CHAQUE action ou modification, mettre à jour `docs/journal.md` avec :
+  - La date
+  - Ce qui a été fait
+  - Pourquoi
+  - Ce qui reste à faire
+- Mettre à jour `CLAUDE.md` à chaque évolution majeure du projet
+- Tenir un suivi précis : chaque fichier créé, modifié ou supprimé doit être tracé
+
+### Environnement Proxmox
+- À compléter lors de l'Étape 2 (IP, ressources, noms des VMs/LXC)
