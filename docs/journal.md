@@ -100,3 +100,22 @@
 
 ### Prochaine étape
 Étape 2 — Infrastructure Proxmox : inventaire des ressources disponibles et création des VMs/LXC
+
+---
+
+## 2026-05-29 — Installation Docker sur la VM
+
+### Réalisé
+- Ajout de la clé SSH de Tommy (`tommy@tommy-Latitude`) dans `~/.ssh/authorized_keys` → connexion par clé active
+- Configuration sudo sans mot de passe pour l'utilisateur `databridge`
+- Installation Docker CE 29.5.2 + Docker Compose v5.1.4 (plugin officiel) depuis le dépôt officiel Docker
+- Docker activé au démarrage (`systemctl enable docker`)
+- Utilisateur `databridge` ajouté au groupe `docker` (pas besoin de `sudo` pour les commandes Docker)
+- Clone du repo `DataBridge` sur le poste local (`/home/tommy/Documents/Workspace/databridge/DataBridge`)
+
+### Décisions techniques
+- **Docker Compose plugin** (v2, commande `docker compose`) plutôt que `docker-compose` standalone — version moderne et maintenue
+- **Un seul poste local** lié au repo GitHub pour éviter les conflits
+
+### Prochaine étape
+Étape 3 — Créer le `docker-compose.yml` avec les 4 services : PostgreSQL, MinIO, backend Node.js/Express, Nginx
