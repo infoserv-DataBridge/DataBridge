@@ -43,3 +43,60 @@
 
 ### Prochaine étape
 Étape 2 — Infrastructure Proxmox : récupérer les infos de l'environnement disponible (IP, RAM, stockage) et planifier la création des VMs/LXC
+
+---
+
+## 2026-05-29 — Configuration VM DataBridge & liaison GitHub
+
+### Réalisé
+- Résolution du problème DNS sur la VM DataBridge (ajout nameserver 8.8.8.8)
+- Génération d'une clé SSH ed25519 sur la VM ()
+- Ajout de la clé publique sur les deux comptes GitHub (Yannis + Tommy)
+- Test de connexion SSH vers GitHub — authentification confirmée ()
+- Configuration de git sur la VM (user.name, user.email, defaultBranch)
+- Création de la structure de dossiers sur la VM :
+  -  — dépôts clonés
+  -  — scripts d'automatisation
+  -  — fichiers de configuration
+  -  — logs applicatifs
+  -  — sauvegardes
+- Clone des deux repos GitHub sur la VM :
+  -  → 
+  -  → 
+
+### Infos VM
+- IP : 10.4.0.206
+- User : databridge
+- OS : Debian 6.1.0-42-amd64
+
+### Prochaine étape
+Étape 2 — Infrastructure Proxmox : inventaire des ressources disponibles et création des VMs/LXC
+
+
+---
+
+## 2026-05-29 — Configuration VM DataBridge & liaison GitHub
+
+### Réalisé
+- Résolution du problème DNS sur la VM DataBridge (ajout nameserver 8.8.8.8)
+- Génération d'une clé SSH ed25519 sur la VM (`~/.ssh/id_ed25519`)
+- Ajout de la clé publique sur les deux comptes GitHub (Yannis + Tommy)
+- Test de connexion SSH vers GitHub — authentification confirmée (`Hi Paugyy!`)
+- Configuration de git sur la VM (user.name, user.email, defaultBranch)
+- Création de la structure de dossiers sur la VM :
+  - `~/databridge/repos/` — dépôts clonés
+  - `~/databridge/scripts/` — scripts d'automatisation
+  - `~/databridge/config/` — fichiers de configuration
+  - `~/databridge/logs/` — logs applicatifs
+  - `~/databridge/backups/` — sauvegardes
+- Clone des deux repos GitHub sur la VM :
+  - `DataBridge` → `~/databridge/repos/DataBridge/`
+  - `infra-proxmox` → `~/databridge/repos/infra-proxmox/`
+
+### Infos VM
+- IP : 10.4.0.206
+- User : databridge
+- OS : Debian 6.1.0-42-amd64
+
+### Prochaine étape
+Étape 2 — Infrastructure Proxmox : inventaire des ressources disponibles et création des VMs/LXC
