@@ -141,3 +141,22 @@ http://10.4.0.206:9001 → console MinIO
 
 ### Ce qui reste à faire
 - Étape 5 : routes API backend (import fichiers, parsing Excel/CSV)
+
+---
+
+## 2026-06-05 — Sécurisation credentials + nettoyage général
+
+### Ce qui a été fait
+
+**Credentials sécurisés :**
+- `~/databridge/.secrets/credentials.md` sur la VM (chmod 600, jamais dans git)
+- `docs/secrets.enc` : version chiffrée AES-256 dans le repo (openssl)
+- `docs/PROJET_COMPLET.md` : référence complète non-sensible dans le repo
+
+**Nettoyage docker-compose.yml :**
+- Correction bug `ports:` orpheline après suppression binding postgres
+- Validation YAML confirmée
+
+**Audit :**
+- Aucun mot de passe en clair dans git
+- `.env`, `infra/docker/.env`, `.secrets/` tous exclus par gitignore
