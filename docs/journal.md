@@ -71,3 +71,47 @@ http://10.4.0.206:9001 → console MinIO
 - Configuration clés SSH GitHub
 - Création fichiers de base (CLAUDE.md, README.md, .gitignore, .env.example)
 - Création diagramme d'infrastructure (Excalidraw + SVG)
+
+---
+
+## 2026-06-05 — Étape 4 : Base de données PostgreSQL + stockage MinIO
+
+### Ce qui a été fait
+
+**PostgreSQL — schéma créé :**
+- `backend/db/schema.sql` : 3 tables + 4 index
+- `users` : gestion des utilisateurs (email, mot de passe hashé, rôle)
+- `imports` : métadonnées de chaque fichier importé (nom, type, chemin MinIO, colonnes détectées, statut)
+- `import_rows` : données importées en JSONB (flexible, s'adapte à n'importe quelles colonnes)
+- Script monté dans docker-compose → s'exécute automatiquement au premier démarrage de postgres
+
+**MinIO — bucket créé :**
+- Bucket `databridge-files` créé automatiquement via `minio-init` (service docker-compose)
+- Utilise l'image officielle `minio/mc:latest`
+- Idempotent : `--ignore-existing` évite l'erreur si le bucket existe déjà
+
+**Backend — connexions ajoutées :**
+- `pg` : client PostgreSQL (v8.11)
+- `minio` : client MinIO (v8.0)
+- `GET /api/health` vérifie maintenant les 3 services : API + PostgreSQL + MinIO
+
+### Résultat du health check
+
+```json
+{
+  "status": "ok",
+  "version": "0.2.0",
+  "services": {
+    "postgres": "ok",
+    "minio": "ok"
+  }
+}
+```
+
+### Ce qui reste à faire (Étape 5)
+
+- Routes API : POST /api/import (upload fichier)
+- Parser Excel/CSV → extraction colonnes et données
+- Sauvegarde fichier dans MinIO
+- Insertion des données dans PostgreSQL (import_rows)
+- Routes GET pour consulter les imports
