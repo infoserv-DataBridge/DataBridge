@@ -10,12 +10,12 @@ Les salariés stockent leurs données dans des classeurs Excel isolés. DataBrid
 
 | Composant           | Technologie              |
 |---------------------|--------------------------|
-| Frontend            | Vue.js                   |
+| Frontend            | Vue.js 3 + Vite          |
 | Backend / API       | Node.js + Express        |
-| Traitement fichiers | Parser Excel / CSV       |
+| Traitement fichiers | xlsx + csv-parser        |
 | Base de données     | PostgreSQL 16            |
 | Stockage fichiers   | MinIO (compatible S3)    |
-| Authentification    | JWT                      |
+| Authentification    | JWT + bcrypt             |
 | Reverse proxy       | Nginx                    |
 | Conteneurs          | Docker + Docker Compose  |
 | Infra               | Proxmox VM               |
@@ -25,38 +25,49 @@ Les salariés stockent leurs données dans des classeurs Excel isolés. DataBrid
 ```
 DataBridge/
 ├── backend/
-│   ├── parsers/         # Traitement Excel/CSV → PostgreSQL
-│   ├── server.js        # Point d'entrée API Express
-│   └── package.json
-├── frontend/            # Interface web Vue.js
-├── infra/
-│   └── docker/
-│       ├── docker-compose.yml
-│       ├── Dockerfile.backend
-│       ├── Dockerfile.frontend
-│       └── nginx/
-│           └── nginx.conf
+│   ├── db/schema.sql        # Tables : users, imports, import_rows
+│   ├── routes/              # health.js, imports.js
+│   ├── services/            # database.js, storage.js, parser.js
+│   ├── server.js
+│   └── package.json         # v0.3.0
+├── frontend/
+│   ├── src/
+│   │   ├── views/           # ImportView, ImportsView, ImportDetailView
+│   │   ├── components/      # NavBar
+│   │   ├── router/          # index.js
+│   │   ├── api.js           # Appels fetch vers /api/*
+│   │   ├── App.vue
+│   │   ├── main.js
+│   │   └── style.css
+│   ├── package.json
+│   └── vite.config.js
+├── infra/docker/
+│   ├── docker-compose.yml   # 5 services, 4 réseaux isolés
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend  # Multi-stage : Vite build → nginx
+│   └── nginx/nginx.conf
 ├── docs/
-│   ├── acces.md         # URLs et accès aux services
-│   ├── architecture.md  # Architecture technique détaillée
-│   ├── journal.md       # Journal de bord
-│   └── setup.md         # Guide d'installation
-├── .env.example         # Variables d'environnement (template)
-├── .gitignore
-├── CLAUDE.md            # Instructions pour Claude Code
+│   ├── PROJET_COMPLET.md    # Référence complète (URLs, commandes, API)
+│   ├── secrets.enc          # Credentials chiffrés AES-256
+│   ├── acces.md             # Accès services + commandes Docker
+│   ├── architecture.md      # Schémas Mermaid
+│   ├── journal.md           # Journal de bord
+│   └── setup.md             # Guide d'installation
+├── TODO.md                  # Checklist collaborative (Yannis + Tommy + Claude)
+├── .env.example             # Template variables d'environnement
+├── CLAUDE.md                # Instructions pour Claude Code
 └── README.md
 ```
 
 ## Accès — VM de développement
 
-| Service          | URL                            |
-|------------------|--------------------------------|
-| Application      | http://10.4.0.206              |
-| API (health)     | http://10.4.0.206:3000/api/health |
-| MinIO Console    | http://10.4.0.206:9001         |
-| PostgreSQL       | 10.4.0.206:5432                |
+| Service          | URL                               |
+|------------------|-----------------------------------|
+| **Application**  | http://10.4.0.206                 |
+| **API health**   | http://10.4.0.206/api/health      |
+| **MinIO Console**| http://10.4.0.206:9001            |
 
-> Les identifiants sont dans le fichier `.env` sur la VM.
+> Identifiants dans `docs/secrets.enc` (chiffré) ou sur la VM : `~/databridge/.secrets/credentials.md`
 > Voir [`docs/acces.md`](docs/acces.md) pour le détail complet.
 
 ## Lancer le projet
@@ -68,25 +79,29 @@ cd DataBridge
 
 # Configurer les variables d'environnement
 cp .env.example .env
-# Remplir les valeurs dans .env
+nano .env   # Remplir les mots de passe
+
+# Copier .env pour Docker Compose
+cp .env infra/docker/.env
 
 # Démarrer tous les containers
 cd infra/docker
 docker compose up -d
 
-# Vérifier que tout tourne
+# Vérifier
 docker compose ps
+curl http://localhost/api/health
 ```
 
 ## Roadmap
 
-- [x] Étape 1 — Préparation environnement & organisation projet
-- [x] Étape 3 — Infrastructure Docker (PostgreSQL, MinIO, Backend, Nginx)
-- [ ] Étape 4 — Base de données PostgreSQL + stockage MinIO
-- [ ] Étape 5 — Backend API (import fichiers + parsing)
-- [ ] Étape 6 — Frontend Vue.js
+- [x] Étape 1 — Préparation environnement
+- [x] Étape 3 — Infrastructure Docker (4 réseaux isolés)
+- [x] Étape 4 — PostgreSQL + MinIO
+- [x] Étape 5 — Backend API (import Excel/CSV, routes CRUD)
+- [x] Étape 6 — Frontend Vue.js (upload, liste, détail)
 - [ ] Étape 7 — Authentification JWT + gestion des rôles
-- [ ] Étape 8 — Tests, sécurisation, documentation finale
+- [ ] Étape 8 — Tests, HTTPS, sauvegardes
 
 ## Conventions Git
 

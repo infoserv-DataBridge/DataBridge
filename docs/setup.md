@@ -16,11 +16,10 @@
 ssh -i ~/.ssh/proxmox databridge@10.4.0.206
 ```
 
-### 2. Cloner le repo (si pas encore fait)
+### 2. Cloner le repo
 
 ```bash
-mkdir -p ~/databridge/repos
-cd ~/databridge/repos
+mkdir -p ~/databridge/repos && cd ~/databridge/repos
 git clone git@github.com:infoserv-DataBridge/DataBridge.git
 cd DataBridge
 ```
@@ -29,100 +28,101 @@ cd DataBridge
 
 ```bash
 cp .env.example .env
-nano .env   # ou vim .env
-# Modifier les valeurs POSTGRES_PASSWORD, MINIO_SECRET_KEY, JWT_SECRET
-```
+nano .env
+# Remplir : POSTGRES_PASSWORD, MINIO_SECRET_KEY, JWT_SECRET
 
-### 4. Copier le .env pour Docker Compose
-
-```bash
+# Copier pour Docker Compose (cherche .env dans son propre dossier)
 cp .env infra/docker/.env
 ```
 
-> Docker Compose cherche le `.env` dans son propre dossier.
-> Le fichier racine `.env` sert au backend à l'exécution.
-> Les deux doivent être identiques.
-
-### 5. Lancer tous les containers
+### 4. Lancer tous les containers
 
 ```bash
 cd infra/docker
 docker compose up -d
 ```
 
-### 6. Vérifier que tout fonctionne
+### 5. Vérifier
 
 ```bash
 docker compose ps
-# Les 4 containers doivent être "Up"
+# Les containers postgres, minio, backend, nginx doivent être "Up"
 
-curl http://localhost:3000/api/health
-# Doit retourner : {"status":"ok",...}
+curl http://localhost/api/health
+# {"status":"ok","services":{"postgres":"ok","minio":"ok"}}
 ```
 
-### 7. Mettre à jour le code (après un git pull)
+### 6. Mettre à jour après un git pull
 
 ```bash
 cd ~/databridge/repos/DataBridge
 git pull origin main
-
-# Reconstruire et relancer le backend si modifié
 cd infra/docker
-docker compose build backend
-docker compose up -d
+
+# Si le backend a changé :
+docker compose build backend && docker compose up -d backend
+
+# Si le frontend a changé :
+docker compose build nginx && docker compose up -d nginx
+
+# Si les deux ont changé :
+docker compose build && docker compose up -d
 ```
 
 ---
 
 ## Développement local (sur votre machine)
 
-> Pour travailler sur le code sans toucher à la VM.
-
-### Prérequis supplémentaires
-
-- Node.js 20+
-- Docker Desktop
-
-### Installation
+> Pour travailler sur le code sans toucher à la VM. Nécessite Node.js 20+.
 
 ```bash
 git clone https://github.com/infoserv-DataBridge/DataBridge.git
 cd DataBridge
 cp .env.example .env
-# Modifier .env (POSTGRES_HOST=localhost, MINIO_ENDPOINT=localhost)
+# Modifier .env : POSTGRES_HOST=localhost, MINIO_ENDPOINT=localhost
 
-# Lancer uniquement la BDD et MinIO
-cd infra/docker
-docker compose up -d postgres minio
-cd ../..
+# Lancer BDD et MinIO uniquement
+cd infra/docker && docker compose up -d postgres minio && cd ../..
 
-# Lancer le backend
-cd backend
-npm install
-npm run dev
+# Backend
+cd backend && npm install && npm run dev
+# → http://localhost:3000/api/health
 
-# Lancer le frontend (Étape 6)
-cd ../frontend
-npm install
-npm run dev
+# Frontend
+cd ../frontend && npm install && npm run dev
+# → http://localhost:5173
 ```
-
-### Accès en local
-
-| Service       | URL                      |
-|---------------|--------------------------|
-| Frontend      | http://localhost:5173    |
-| API Backend   | http://localhost:3000    |
-| MinIO Console | http://localhost:9001    |
-| PostgreSQL    | localhost:5432           |
 
 ---
 
 ## Containers Docker
 
-| Container            | Image               | Port(s)      | Rôle                      |
-|----------------------|---------------------|--------------|---------------------------|
-| databridge_postgres  | postgres:16-alpine  | 5432         | Base de données           |
-| databridge_minio     | minio/minio:latest  | 9000, 9001   | Stockage fichiers         |
-| databridge_backend   | node:20-alpine      | 3000         | API REST Node.js          |
-| databridge_nginx     | nginx:alpine        | 80           | Reverse proxy + frontend  |
+| Container | Image | Port exposé | Réseau(x) | Rôle |
+|-----------|-------|-------------|-----------|------|
+| `databridge_postgres` | postgres:16-alpine | aucun | net_db (isolé) | BDD |
+| `databridge_minio` | minio/minio:latest | :9001 | net_storage, net_admin | Stockage |
+| `databridge_backend` | node:20-alpine | aucun | net_db, net_storage, net_app | API |
+| `databridge_nginx` | nginx+vue build | :80 | net_app | Frontend + proxy |
+
+> `databridge_minio_init` s'exécute une fois au démarrage pour créer le bucket, puis s'arrête.
+
+---
+
+## Schéma BDD
+
+```sql
+users       (id, email, password_hash, role, created_at)
+imports     (id, user_id, original_filename, file_type, minio_key,
+             row_count, columns, status, error_message, created_at)
+import_rows (id, import_id, row_index, data JSONB, created_at)
+```
+
+## API disponible
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/api/health` | Statut API + postgres + minio |
+| POST | `/api/imports` | Upload Excel/CSV |
+| GET | `/api/imports` | Liste imports |
+| GET | `/api/imports/:id` | Détail import |
+| GET | `/api/imports/:id/rows` | Données paginées |
