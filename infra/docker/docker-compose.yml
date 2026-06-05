@@ -98,18 +98,17 @@ services:
       minio:
         condition: service_healthy
 
-  # ── Nginx ─────────────────────────────────────────────────
+  # ── Nginx + Frontend Vue.js ───────────────────────────────
+  # Build multi-stage : Vue.js compilé puis servi par nginx
   # Seul point d'entrée public (port 80)
-  # Accès au backend via net_app uniquement
   nginx:
-    image: nginx:alpine
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.frontend
     container_name: databridge_nginx
     restart: unless-stopped
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../../frontend:/usr/share/nginx/html:ro
     depends_on:
       - backend
     networks:

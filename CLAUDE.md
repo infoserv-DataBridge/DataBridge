@@ -2,68 +2,73 @@
 
 ## Projet
 
-Plateforme web permettant à des salariés d'importer leurs fichiers Excel/CSV et de les transformer automatiquement en base de données PostgreSQL structurée, sécurisée et accessible via une interface simple.
+Plateforme web permettant à des salariés d'importer leurs fichiers Excel/CSV et de les transformer automatiquement en base de données PostgreSQL, accessible via une interface web simple.
 
-**Équipe :** Paugy Yannis (@Paugyy) et Etendard Tommy — deux développeurs débutants.
+**Équipe :** Paugy Yannis (@Paugyy) + Etendard Tommy — développeurs débutants.
 
-## Stack (arrêtée — ne pas proposer d'alternatives)
+## Stack (arrêtée)
 
 | Composant | Technologie |
 |-----------|-------------|
-| Frontend | Vue.js + Vite |
-| Backend / API | Node.js + Express |
-| Traitement fichiers | xlsx + csv-parser |
-| Base de données | PostgreSQL 16 |
-| Stockage fichiers | MinIO (compatible S3) |
-| Authentification | JWT + bcrypt |
-| Reverse proxy | Nginx |
-| Conteneurs | Docker + Docker Compose |
+| Frontend | Vue.js 3 + Vite + Vue Router |
+| Backend | Node.js + Express |
+| Parseurs | xlsx + csv-parser |
+| BDD | PostgreSQL 16 |
+| Stockage | MinIO |
+| Auth | JWT + bcrypt |
+| Proxy | Nginx |
+| Conteneurs | Docker + Compose |
 | Infra | Proxmox VM |
 
 ## Infrastructure
 
-- **VM :** `10.4.0.206` — user `databridge` — clé `~/.ssh/proxmox`
+- **VM :** `10.4.0.206` — `ssh -i ~/.ssh/proxmox databridge@10.4.0.206`
 - **Repo VM :** `~/databridge/repos/DataBridge/`
-- **Docker :** `~/databridge/repos/DataBridge/infra/docker/`
-- **GitHub org :** `infoserv-DataBridge`
-- **Credentials chiffrés :** `docs/secrets.enc` (mdp dans `~/databridge/.secrets/credentials.md`)
+- **Docker :** `infra/docker/` — 5 services, 4 réseaux isolés
+- **Credentials :** `docs/secrets.enc` + `~/databridge/.secrets/credentials.md` sur VM
 
 ## Roadmap
 
-- [x] Étape 1 — Préparation environnement
-- [x] Étape 3 — Infrastructure Docker (4 réseaux isolés)
-- [x] Étape 4 — PostgreSQL (3 tables) + MinIO (bucket)
-- [x] Étape 5 — Backend API (import, parse, routes CRUD)
-- [ ] Étape 6 — Frontend Vue.js
-- [ ] Étape 7 — Authentification JWT
-- [ ] Étape 8 — Tests, HTTPS, sauvegardes
+- [x] Étape 1 — Environnement
+- [x] Étape 3 — Docker (4 réseaux isolés)
+- [x] Étape 4 — PostgreSQL + MinIO
+- [x] Étape 5 — Backend API complète
+- [x] Étape 6 — Frontend Vue.js
+- [ ] Étape 7 — Auth JWT
+- [ ] Étape 8 — Tests + HTTPS + Sauvegardes
 
-## Architecture backend actuelle
+## Architecture
 
 ```
+frontend/
+├── src/
+│   ├── views/        ImportView, ImportsView, ImportDetailView
+│   ├── components/   NavBar
+│   ├── router/       index.js
+│   ├── api.js        fetch vers /api/*
+│   ├── App.vue
+│   ├── main.js
+│   └── style.css
+├── package.json      vue@3, vue-router@4, vite@5
+└── vite.config.js
+
 backend/
-├── routes/
-│   ├── health.js       GET /api/health
-│   └── imports.js      POST/GET /api/imports, GET /api/imports/:id/rows
-├── services/
-│   ├── database.js     Pool PostgreSQL
-│   ├── storage.js      Client MinIO (upload)
-│   └── parser.js       Parse Excel/CSV → tableau d'objets
-├── db/
-│   └── schema.sql      Tables: users, imports, import_rows
+├── routes/           health.js, imports.js
+├── services/         database.js, storage.js, parser.js
+├── db/               schema.sql
 ├── server.js
-└── package.json        v0.3.0
+└── package.json      v0.3.0
+
+infra/docker/
+├── docker-compose.yml        5 services, 4 réseaux
+├── Dockerfile.backend        node:20-alpine
+├── Dockerfile.frontend       multi-stage: node build → nginx
+└── nginx/nginx.conf
 ```
 
-## Règles de comportement
+## Règles
 
-- Toujours répondre en **français**, vocabulaire simple adapté à des débutants
+- Répondre en **français**, vocabulaire simple
 - Expliquer le **POURQUOI** avant d'exécuter
-- Avancer **étape par étape** — confirmation avant chaque nouvelle étape
-- Toujours demander confirmation avant toute action irréversible
-
-## Documentation à maintenir après chaque action
-
-- `TODO.md` : cocher les tâches terminées, ajouter les nouvelles
-- `docs/journal.md` : date, ce qui a été fait, ce qui reste
-- `CLAUDE.md` : mettre à jour roadmap et architecture si évolution majeure
+- **Étape par étape** — jamais N+1 sans confirmation
+- Après chaque action : mettre à jour `TODO.md`, `docs/journal.md`, `CLAUDE.md`

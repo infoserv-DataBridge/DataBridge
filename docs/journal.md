@@ -199,3 +199,38 @@ http://10.4.0.206:9001 → console MinIO
 ### Ce qui reste à faire (Étape 6)
 - Initialiser Vue.js dans `frontend/`
 - Page login, upload, tableau de données
+
+---
+
+## 2026-06-05 — Étape 6 : Frontend Vue.js
+
+### Ce qui a été fait
+
+**Application Vue.js 3 complète :**
+
+| Fichier | Rôle |
+|---------|------|
+| `src/main.js` | Entrée de l'app, monte Vue + router |
+| `src/App.vue` | Layout global (NavBar + RouterView) |
+| `src/router/index.js` | 3 routes : `/`, `/imports`, `/imports/:id` |
+| `src/api.js` | Fonctions fetch vers le backend |
+| `src/style.css` | CSS global minimaliste |
+| `src/components/NavBar.vue` | Barre de navigation |
+| `src/views/ImportView.vue` | Upload drag & drop + résultat + imports récents |
+| `src/views/ImportsView.vue` | Tableau de tous les imports |
+| `src/views/ImportDetailView.vue` | Données tabulaires paginées |
+
+**Docker :**
+- `Dockerfile.frontend` mis à jour : build multi-stage (Node → nginx)
+- `docker-compose.yml` : nginx utilise maintenant `Dockerfile.frontend` (plus de volume mount)
+- Build Vite : 36 modules, 101kb JS, 6kb CSS
+
+**Testé :**
+- `GET /` → HTTP 200, Vue.js chargé
+- `GET /imports` → HTTP 200 (SPA routing)
+- `GET /api/health` via nginx → OK
+
+### Prochaine étape (Étape 7)
+- Routes auth : register, login
+- Middleware JWT
+- Page login Vue.js
