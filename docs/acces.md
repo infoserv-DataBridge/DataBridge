@@ -2,96 +2,74 @@
 
 ## VM de développement
 
-**IP :** `10.4.0.206`
-**Connexion SSH :** `ssh -i ~/.ssh/proxmox databridge@10.4.0.206`
+**IP :** `10.4.0.206` — **OS :** Debian 12 — **SSH :** `ssh -i ~/.ssh/proxmox databridge@10.4.0.206`
 
 ---
 
-## Services disponibles
+## Services accessibles depuis le LAN
 
-### Application web (Frontend)
-- **URL :** http://10.4.0.206
-- **Port :** 80
-- **Container :** `databridge_nginx`
+| Service | URL | Notes |
+|---------|-----|-------|
+| **Application** | http://10.4.0.206 | Interface web principale (nginx) |
+| **API health** | http://10.4.0.206/api/health | Vérifie postgres + minio |
+| **MinIO Console** | http://10.4.0.206:9001 | Admin stockage fichiers |
 
-### API Backend
-- **URL :** http://10.4.0.206:3000
-- **Health check :** http://10.4.0.206:3000/api/health
-- **Port :** 3000
-- **Container :** `databridge_backend`
+## Services accessibles uniquement depuis la VM
 
-### MinIO — Console d'administration (stockage fichiers)
-- **URL :** http://10.4.0.206:9001
-- **API S3 :** http://10.4.0.206:9000
-- **Login :** voir `.env` → `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`
-- **Container :** `databridge_minio`
-
-### PostgreSQL — Base de données
-- **Host :** `10.4.0.206`
-- **Port :** `5432`
-- **Base :** voir `.env` → `POSTGRES_DB`
-- **Login :** voir `.env` → `POSTGRES_USER` / `POSTGRES_PASSWORD`
-- **Container :** `databridge_postgres`
+| Service | Accès | Notes |
+|---------|-------|-------|
+| **Backend API** | `localhost:3000` (sur la VM) | Nginx proxifie, pas exposé LAN |
+| **PostgreSQL** | `docker exec` uniquement | Réseau `net_db` isolé |
+| **MinIO API S3** | interne Docker (`minio:9000`) | Réseau `net_storage` isolé |
 
 ---
 
-## Où sont les identifiants ?
+## Identifiants
 
 Les mots de passe sont dans le fichier `.env` sur la VM (jamais sur GitHub) :
 
 ```bash
-# Se connecter à la VM
 ssh -i ~/.ssh/proxmox databridge@10.4.0.206
-
-# Lire le fichier .env
 cat ~/databridge/repos/DataBridge/.env
 ```
 
 ---
 
-## Gérer les containers Docker
+## Segmentation réseau
+
+```
+LAN ──:80──► nginx ──(net_app)──► backend ──(net_db)──► postgres
+                                           ──(net_storage)──► minio:9000
+LAN ──:9001──► minio console (net_admin)
+```
+
+- **postgres** : 0 port exposé, joignable uniquement par le backend
+- **minio API** : 0 port exposé, joignable uniquement par le backend
+- **backend** : 0 port exposé, nginx gère tout le trafic entrant
+- **nginx** : seul point d'entrée public (port 80)
+
+---
+
+## Commandes Docker utiles
 
 ```bash
-# Se connecter à la VM puis :
+# Depuis la VM :
 cd ~/databridge/repos/DataBridge/infra/docker
 
-# Voir l'état de tous les containers
+# État des containers et réseaux
 docker compose ps
+docker network ls | grep databridge
 
-# Voir les logs d'un service
+# Logs
 docker compose logs backend
 docker compose logs postgres
-docker compose logs minio
-docker compose logs nginx
+
+# Accès direct à PostgreSQL
+docker exec -it databridge_postgres psql -U databridge_user -d databridge
 
 # Redémarrer un service
 docker compose restart backend
 
-# Arrêter tous les containers
-docker compose down
-
-# Démarrer tous les containers
-docker compose up -d
-
-# Reconstruire l'image backend (après modification du code)
-docker compose build backend
-docker compose up -d backend
-```
-
----
-
-## Architecture réseau Docker
-
-```
-Internet
-    │
-    ▼
-[nginx :80]
-    ├─ /        → fichiers frontend statiques
-    └─ /api/    → [backend :3000]
-                       ├─ [postgres :5432]
-                       └─ [minio :9000]
-
-Console MinIO : port 9001 (accès direct, hors nginx)
-PostgreSQL    : port 5432 (accès direct, pour outils DB)
+# Mettre à jour après git pull
+git pull origin main && docker compose build backend && docker compose up -d
 ```

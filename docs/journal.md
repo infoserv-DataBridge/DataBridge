@@ -115,3 +115,29 @@ http://10.4.0.206:9001 → console MinIO
 - Sauvegarde fichier dans MinIO
 - Insertion des données dans PostgreSQL (import_rows)
 - Routes GET pour consulter les imports
+
+---
+
+## 2026-06-05 — Segmentation réseau Docker + documentation complète
+
+### Ce qui a été fait
+
+**Sécurité réseau — 4 réseaux Docker isolés :**
+
+| Réseau | Type | Containers |
+|--------|------|-----------|
+| `net_db` | `internal: true` | postgres ↔ backend |
+| `net_storage` | `internal: true` | minio ↔ backend |
+| `net_app` | bridge | nginx ↔ backend |
+| `net_admin` | bridge | minio console |
+
+**Résultat :** nginx ne peut plus joindre postgres (testé et confirmé). Backend non exposé. Seuls les ports 80 (nginx) et 9001 (minio console) sont accessibles depuis le LAN.
+
+**Documentation mise à jour :**
+- `TODO.md` créé : checklist collaborative avec schémas Mermaid (roadmap, architecture, ce qui reste)
+- `docs/architecture.md` : schémas Mermaid (réseau Docker, BDD ERD, flux d'import)
+- `docs/acces.md` : distinction services LAN vs services internes VM
+- `infra-proxmox/network/README.md` : mise à jour segmentation
+
+### Ce qui reste à faire
+- Étape 5 : routes API backend (import fichiers, parsing Excel/CSV)
