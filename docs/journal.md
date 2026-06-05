@@ -160,3 +160,42 @@ http://10.4.0.206:9001 → console MinIO
 **Audit :**
 - Aucun mot de passe en clair dans git
 - `.env`, `infra/docker/.env`, `.secrets/` tous exclus par gitignore
+
+---
+
+## 2026-06-05 — Étape 5 : Backend API complet
+
+### Ce qui a été fait
+
+**Nouvelle structure backend :**
+- `backend/services/database.js` — Pool PostgreSQL partagé
+- `backend/services/storage.js` — Client MinIO + fonction uploadFile
+- `backend/services/parser.js` — Parseur Excel (xlsx) et CSV (csv-parser)
+- `backend/routes/health.js` — GET /api/health v0.3.0
+- `backend/routes/imports.js` — Routes import complètes
+
+**Routes API disponibles :**
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/api/health` | Statut API + postgres + minio |
+| POST | `/api/imports` | Upload fichier → parse → MinIO → PostgreSQL |
+| GET | `/api/imports` | Liste tous les imports |
+| GET | `/api/imports/:id` | Détail d'un import |
+| GET | `/api/imports/:id/rows` | Données paginées (`?page=&limit=`) |
+
+**Limites et validations :**
+- Formats acceptés : `.xlsx`, `.xls`, `.csv`
+- Taille max : 10 Mo
+- Statut import en base : `pending` → `processing` → `done` / `error`
+- Insert par batch de 100 lignes (performances)
+
+**Test réussi** — fichier CSV 5 lignes importé, données dans PostgreSQL et fichier dans MinIO (`2026/06/...`)
+
+**Nettoyage repo :**
+- Suppression des `.gitkeep` inutiles (backend/, parsers/, frontend/, infra/, infra/docker/)
+- Suppression du dossier `backend/parsers/` (remplacé par `backend/services/parser.js`)
+
+### Ce qui reste à faire (Étape 6)
+- Initialiser Vue.js dans `frontend/`
+- Page login, upload, tableau de données

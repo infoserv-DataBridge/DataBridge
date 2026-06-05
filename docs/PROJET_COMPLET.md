@@ -140,6 +140,34 @@ DataBridge/
 
 ---
 
+## API — Routes disponibles (v0.3.0)
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/api/health` | Statut API, postgres, minio |
+| POST | `/api/imports` | Upload fichier (Excel/CSV) → traitement complet |
+| GET | `/api/imports` | Liste tous les imports |
+| GET | `/api/imports/:id` | Détail d'un import |
+| GET | `/api/imports/:id/rows` | Données paginées (`?page=1&limit=50`) |
+
+### Exemple upload
+
+```bash
+curl -X POST http://10.4.0.206/api/imports   -F "file=@mon_fichier.xlsx"
+```
+
+### Exemple lecture données
+
+```bash
+# Page 1, 50 lignes par page
+curl "http://10.4.0.206/api/imports/1/rows?page=1&limit=50"
+```
+
+**Formats acceptés :** `.xlsx`, `.xls`, `.csv` — **Taille max :** 10 Mo
+
+
+---
+
 ## Gérer les containers Docker
 
 ```bash
