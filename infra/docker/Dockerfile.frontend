@@ -1,0 +1,12 @@
+# Étape 6 : sera remplacé par un build Vue.js multi-stage
+# Pour l'instant : placeholder statique servi par nginx
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm install 2>/dev/null || true
+COPY frontend/ ./
+RUN npm run build 2>/dev/null || (mkdir -p dist && cp -r *.html dist/ 2>/dev/null || true)
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80

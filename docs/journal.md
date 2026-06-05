@@ -1,121 +1,91 @@
 # Journal de bord — DataBridge
 
-## 2026-05-22 — Étape 1 : Organisation du projet
+---
 
-### Réalisé
+## 2026-06-05 — Étape 3 : Infrastructure Docker complète
+
+### Ce qui a été fait
+
+Mise en place complète de l'infrastructure Docker (Étape 3 de la roadmap).
+
+**Fichiers créés :**
+- `infra/docker/docker-compose.yml` — orchestration des 4 containers
+- `infra/docker/Dockerfile.backend` — image Docker pour l'API Node.js
+- `infra/docker/Dockerfile.frontend` — image Docker pour Vue.js (multi-stage, pour l'Étape 6)
+- `infra/docker/nginx/nginx.conf` — configuration du reverse proxy Nginx
+- `backend/package.json` — dépendances Express, cors, dotenv
+- `backend/server.js` — serveur Express minimal avec endpoint /api/health
+- `frontend/index.html` — page placeholder (sera remplacée à l'Étape 6)
+- `.env` — variables d'environnement (exclu de Git par .gitignore)
+- `infra/docker/.env` — copie du .env pour Docker Compose (exclu de Git)
+
+**4 containers Docker démarrés :**
+
+| Container | Image | Port | État |
+|-----------|-------|------|------|
+| databridge_postgres | postgres:16-alpine | 5432 | healthy |
+| databridge_minio | minio/minio:latest | 9000, 9001 | healthy |
+| databridge_backend | custom (Node.js 20) | 3000 | running |
+| databridge_nginx | nginx:alpine | 80 | running |
+
+### Pourquoi ces choix
+
+- **postgres:16-alpine** : image officielle légère, version LTS stable
+- **minio/minio:latest** : stockage objet compatible S3, console web sur :9001
+- **Node.js 20 Alpine** : légère, LTS, adaptée à la production
+- **nginx:alpine** : reverse proxy + serveur de fichiers statiques
+
+### Architecture réseau Docker
+
+```
+Internet → nginx:80 → /      → frontend (fichiers statiques)
+                    → /api/  → backend:3000 → postgres:5432
+                                             → minio:9000
+```
+
+### Accès aux services (depuis la VM 10.4.0.206)
+
+- Frontend : http://10.4.0.206
+- API Backend : http://10.4.0.206:3000/api/health
+- MinIO Console : http://10.4.0.206:9001
+- PostgreSQL : 10.4.0.206:5432
+
+### Commandes utiles
+
+```bash
+# Depuis ~/databridge/repos/DataBridge/infra/docker/
+
+# Voir l'état des containers
+docker compose ps
+
+# Voir les logs d'un container
+docker compose logs backend
+docker compose logs postgres
+
+# Redémarrer un container
+docker compose restart backend
+
+# Arrêter tout
+docker compose down
+
+# Démarrer tout
+docker compose up -d
+```
+
+### Ce qui reste à faire
+
+- Étape 4 : Configurer la base de données PostgreSQL (tables, schéma)
+- Étape 4 : Créer le bucket MinIO "databridge-files" automatiquement
+- Étape 5 : Développer l'API backend (import fichiers, parsing Excel/CSV)
+- Étape 6 : Développer le frontend Vue.js (interface utilisateur)
+
+---
+
+## 2026-05-29 — Étape 1 : Préparation environnement
+
 - Création de l'organisation GitHub `infoserv-DataBridge`
-- Mise en place du monorepo principal `DataBridge`
-- Définition de la stack technique finale
-- Clarification du périmètre projet : import Excel/CSV → PostgreSQL
-- Création de la structure de dossiers (`frontend/`, `backend/parsers/`, `infra/docker/`, `docs/`)
-- Rédaction du `README.md`, `CLAUDE.md`, `.env.example`, `.gitignore`
-- Archivage des repos inutiles (`site-vitrine`, `services-docker`, `documentation`)
-- Création de la branche `dev`
-
-### Décisions techniques
-- **Vue.js** retenu pour le frontend (simplicité, courbe d'apprentissage douce)
-- **Node.js / Express** retenu pour le backend
-- **JWT** préféré à Keycloak pour commencer (moins de complexité)
-- **Nginx** comme reverse proxy
-- Architecture **monorepo** : tout le code dans un seul repo `DataBridge`
-
-### Prochaine étape
-Étape 2 — Infrastructure Proxmox : création des VMs/LXC et configuration réseau
-
----
-
-## 2026-05-22 — Finalisation Étape 1 : nettoyage et instructions
-
-### Réalisé
-- Fusion des deux fichiers `CLAUDE.md` (racine + DataBridge/) en un seul contenu cohérent
-- Ajout des instructions complètes dans `CLAUDE.md` : langue, stack figée, Git, suivi docs
-- Suppression des 3 repos inutiles sur GitHub : `services-docker`, `documentation`, `site-vitrine`
-- Suppression de la branche `dev` (travail sur `main` uniquement pour l'instant)
-- Mise à jour du remote avec le nouveau token GitHub
-
-### Fichiers modifiés
-- `CLAUDE.md` — instructions complètes ajoutées
-- `docs/journal.md` — ce fichier
-
-### Décisions
-- Pas de branche `dev` pour l'instant — équipe débutante, on simplifie le workflow Git
-- Stack définitivement arrêtée : Vue.js · Express · JWT · Nginx · PostgreSQL · MinIO
-
-### Prochaine étape
-Étape 2 — Infrastructure Proxmox : récupérer les infos de l'environnement disponible (IP, RAM, stockage) et planifier la création des VMs/LXC
-
----
-
-## 2026-05-29 — Configuration VM DataBridge & liaison GitHub
-
-### Réalisé
-- Résolution du problème DNS sur la VM DataBridge (ajout nameserver 8.8.8.8)
-- Génération d'une clé SSH ed25519 sur la VM ()
-- Ajout de la clé publique sur les deux comptes GitHub (Yannis + Tommy)
-- Test de connexion SSH vers GitHub — authentification confirmée ()
-- Configuration de git sur la VM (user.name, user.email, defaultBranch)
-- Création de la structure de dossiers sur la VM :
-  -  — dépôts clonés
-  -  — scripts d'automatisation
-  -  — fichiers de configuration
-  -  — logs applicatifs
-  -  — sauvegardes
-- Clone des deux repos GitHub sur la VM :
-  -  → 
-  -  → 
-
-### Infos VM
-- IP : 10.4.0.206
-- User : databridge
-- OS : Debian 6.1.0-42-amd64
-
-### Prochaine étape
-Étape 2 — Infrastructure Proxmox : inventaire des ressources disponibles et création des VMs/LXC
-
-
----
-
-## 2026-05-29 — Configuration VM DataBridge & liaison GitHub
-
-### Réalisé
-- Résolution du problème DNS sur la VM DataBridge (ajout nameserver 8.8.8.8)
-- Génération d'une clé SSH ed25519 sur la VM (`~/.ssh/id_ed25519`)
-- Ajout de la clé publique sur les deux comptes GitHub (Yannis + Tommy)
-- Test de connexion SSH vers GitHub — authentification confirmée (`Hi Paugyy!`)
-- Configuration de git sur la VM (user.name, user.email, defaultBranch)
-- Création de la structure de dossiers sur la VM :
-  - `~/databridge/repos/` — dépôts clonés
-  - `~/databridge/scripts/` — scripts d'automatisation
-  - `~/databridge/config/` — fichiers de configuration
-  - `~/databridge/logs/` — logs applicatifs
-  - `~/databridge/backups/` — sauvegardes
-- Clone des deux repos GitHub sur la VM :
-  - `DataBridge` → `~/databridge/repos/DataBridge/`
-  - `infra-proxmox` → `~/databridge/repos/infra-proxmox/`
-
-### Infos VM
-- IP : 10.4.0.206
-- User : databridge
-- OS : Debian 6.1.0-42-amd64
-
-### Prochaine étape
-Étape 2 — Infrastructure Proxmox : inventaire des ressources disponibles et création des VMs/LXC
-
----
-
-## 2026-05-29 — Installation Docker sur la VM
-
-### Réalisé
-- Ajout de la clé SSH de Tommy (`tommy@tommy-Latitude`) dans `~/.ssh/authorized_keys` → connexion par clé active
-- Configuration sudo sans mot de passe pour l'utilisateur `databridge`
-- Installation Docker CE 29.5.2 + Docker Compose v5.1.4 (plugin officiel) depuis le dépôt officiel Docker
-- Docker activé au démarrage (`systemctl enable docker`)
-- Utilisateur `databridge` ajouté au groupe `docker` (pas besoin de `sudo` pour les commandes Docker)
-- Clone du repo `DataBridge` sur le poste local (`/home/tommy/Documents/Workspace/databridge/DataBridge`)
-
-### Décisions techniques
-- **Docker Compose plugin** (v2, commande `docker compose`) plutôt que `docker-compose` standalone — version moderne et maintenue
-- **Un seul poste local** lié au repo GitHub pour éviter les conflits
-
-### Prochaine étape
-Étape 3 — Créer le `docker-compose.yml` avec les 4 services : PostgreSQL, MinIO, backend Node.js/Express, Nginx
+- Création des repos `DataBridge` et `infra-proxmox`
+- Mise en place de la structure de dossiers sur la VM (10.4.0.206)
+- Clonage des repos sur la VM
+- Configuration des clés SSH GitHub
+- Création des fichiers de documentation (CLAUDE.md, README.md, .gitignore, .env.example)
